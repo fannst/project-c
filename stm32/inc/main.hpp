@@ -26,5 +26,8 @@ void __setup (void) noexcept;
 /// Gets called forever.
 void __loop (void) noexcept;
 
+/// Initializes the FPU.
+void __fpu_enable (void) noexcept;
+
 /// Gets called after the startup code is finished.
 extern "C" __attribute__ (( noreturn )) int main (void) noexcept;

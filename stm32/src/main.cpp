@@ -75,9 +75,10 @@ void __setup_rcc (void) noexcept {
 	// Enables USART1 (STDOUT)
 	RCC->APB2ENR |= (RCC_APB2ENR_USART1EN);
 
-	// Enables WWDG (Watchdog), USART2 (GPS)
+	// Enables WWDG (Watchdog), USART2 (GPS), I2C1 (TOF 1)
 	RCC->APB1ENR |= (RCC_APB1ENR_WWDGEN
-		| RCC_APB1ENR_USART2EN);
+		| RCC_APB1ENR_USART2EN
+		| RCC_APB1ENR_I2C1EN);
 }
 
 /// Handles the setup code.
@@ -106,6 +107,7 @@ void __loop (void) noexcept {
 	Delay::Ms (500);
 }
 
+/// Initializes the FPU.
 void __fpu_enable (void) noexcept {
 	*((volatile uint32_t *) (0xE000ED88)) |= (0xF << 20);
 }
