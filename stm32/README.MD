@@ -14,5 +14,12 @@ RX: A10
 TX: A2
 RX: A3
 
+
+### SPI1 (Slave Device Access)
+NSS: PA4
+SCK: PA5
+MISO: PA6
+MOSI: PA7
+
 ### Buzzer
 SIG: A1

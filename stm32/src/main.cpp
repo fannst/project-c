@@ -1,17 +1,12 @@
+#include "main.hpp"
+
 #include "inc.hpp"
 
-#include "sysclk.hpp"
-#include "buzzer.hpp"
-#include "delay.hpp"
+/**************************************************
+ * Static Variables
+ **************************************************/
 
-#include "hardware/wwdg.hpp"
-#include "hardware/usart.hpp"
-
-#include "drivers/GY-GPS6MV2.hpp"
-
-static Buzzer buzzer (GPIOA, 1);
-
-static GY_GPS6MV2 gps (USART2);
+Main Main::INSTANCE;
 
 /**************************************************
  * Interrupt Service Routines
@@ -22,16 +17,36 @@ extern "C" void USART2_IRQHandler (void) noexcept {
 	if (USART2->ISR & USART_ISR_RXNE) {
 		char c = *reinterpret_cast<volatile char *> (&USART2->RDR);
 		
-		gps.HandleISR (c);
+		Main::GetInstance().getGPS().HandleISR (c);
 	}
 }
 
+/// Handles the SPI1 Interrupt.
+extern "C" void SPI1_IRQHandler (void) noexcept {
+}
+
 /**************************************************
- * Initialization Functions
+ * Classes
  **************************************************/
 
-/// Initializes the GY-GPS6MV Peripheral.
-void __gy_gps6mv2_init (void) noexcept {
+/// Gets the curernt singleton instance.
+Main &Main::GetInstance() noexcept {
+	return Main::INSTANCE;
+}
+
+/// Gets the GPS instance.
+GY_GPS6MV2 &Main::getGPS() noexcept {
+	return m_GPS;
+}
+
+Main::Main (void) noexcept:
+	m_GPS (USART2),
+	m_Buzzer (GPIOA, 1),
+	m_SPISlave (SPI1)
+{}
+
+/// Initializes the GPS hardware.
+void Main::GPSInit (void) noexcept {
 	//
 	// Initializes the GPIO.
 	//
@@ -56,15 +71,44 @@ void __gy_gps6mv2_init (void) noexcept {
 	NVIC_EnableIRQ (USART2_IRQn);
 
 	// Initializes the GPS driver.
-	gps.Init ((__SYSCLOCK_APB1_PERIPHERALS * 1000000));
+	m_GPS.Init ((__SYSCLOCK_APB1_PERIPHERALS * 1000000));
 }
 
-/**************************************************
- * Default Functions
- **************************************************/
+/// Initializes the SPI slave peripheral.
+void Main::SPISlaveInit (void) noexcept {
+	//
+	// Initializes the GPIO.
+	//
+	
+	// Makes PA(4/5/6/7) Alternative Function mode.
+	GPIOA->MODER &= ~(GPIO_MODER_MODER4_Msk 
+		| GPIO_MODER_MODER5_Msk
+		| GPIO_MODER_MODER6_Msk
+		| GPIO_MODER_MODER7_Msk);
+	GPIOA->MODER |= ((0x2 << GPIO_MODER_MODER4_Pos)
+		| (0x2 << GPIO_MODER_MODER5_Pos)
+		| (0x2 << GPIO_MODER_MODER6_Pos)
+		| (0x2 << GPIO_MODER_MODER7_Pos));
+
+	// Selects AF5 for PA(4/5/6/7) to select SPI1
+	GPIOA->AFR[0] = ((5 << GPIO_AFRL_AFRL4_Pos)
+		| (5 << GPIO_AFRL_AFRL5_Pos)
+		| (5 << GPIO_AFRL_AFRL6_Pos)
+		| (5 << GPIO_AFRL_AFRL7_Pos));
+
+	//
+	// Initializes the peripheral.
+	//
+
+	// Enables the SPI1 interrupt.
+	NVIC_EnableIRQ (SPI1_IRQn);
+
+	// Initializes the SPI slave.
+	m_SPISlave.Init ();
+}
 
 /// Enables the used peripheral clocks.
-void __setup_rcc (void) noexcept {
+void Main::SetupRCC (void) noexcept {
 	// Enables GPIOA, DMA1
 	RCC->AHB1ENR |= (RCC_AHB1ENR_GPIOAEN
 		| RCC_AHB1ENR_DMA1EN);
@@ -82,46 +126,46 @@ void __setup_rcc (void) noexcept {
 }
 
 /// Handles the setup code.
-void __setup (void) noexcept {
+void Main::Setup (void) noexcept {
 	// Shepherd::Init ();
 	Delay::Init ();
+
 	USART::STDUsartInit ();
+	Main::SPISlaveInit ();
+	Main::GPSInit ();
 
-	buzzer.Init ();
-
-	__gy_gps6mv2_init ();
+	m_Buzzer.Init ();
 
 	// Performs the startup beep, and prints that we're ready
 	//  to the serial terminal.
-	buzzer.Buzz (250, 500);
+	m_Buzzer.Buzz (250, 500);
 	printf("STM32 CTRL Ready!\r\n");
 }
 
 /// Gets called forever.
-void __loop (void) noexcept {
+void Main::Loop (void) noexcept {
 	Shepherd::Kick ();
 
-	const GY_GPS6MV2_GGA_Data_t &gga = gps.getGGA ();
+	const GY_GPS6MV2_GGA_Data_t &gga = m_GPS.getGGA ();
 	printf ("Lon: %f, Lat: %f, nSat: %u\r\n", gga.lon, gga.lat, gga.nSatelites);
 
 	Delay::Ms (500);
 }
 
-/// Initializes the FPU.
-void __fpu_enable (void) noexcept {
-	*((volatile uint32_t *) (0xE000ED88)) |= (0xF << 20);
-}
+/**************************************************
+ * Default Functions
+ **************************************************/
 
 /// Gets called after the startup code is finished.
 extern "C" __attribute__ (( noreturn )) int main (void) noexcept {
-	__fpu_enable ();
-
 	SysClk::Init ();
 
-	__setup_rcc ();
-	__setup ();
+	Main &main = Main::GetInstance ();
+
+	main.SetupRCC ();
+	main.Setup ();
 
 	while (true) {
-		__loop ();
+		main.Loop ();
 	}
 }
