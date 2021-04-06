@@ -4,9 +4,10 @@
 
 #include "inc.hpp"
 
-#pragma once
-
 #include "drivers/Servo.hpp"
+#include "drivers/BNO055.hpp"
+
+#pragma once
 
 class Dog {
 public:

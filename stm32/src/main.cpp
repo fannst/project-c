@@ -36,6 +36,8 @@ GY_GPS6MV2 &Main::getGPS() noexcept {
 }
 
 Main::Main (void) noexcept:
+	m_I2C (I2C1),
+	m_IMU (m_I2C, BNO055_DEFAULT_I2C_ID),
 	m_GPS (USART2),
 	m_Buzzer (GPIOA, 1)
 {}
@@ -101,10 +103,34 @@ void Main::SPISlaveInit (void) noexcept {
 	// Initializes the SPI slave.
 }
 
+/// Initializes the I2C Master Peripheral
+void Main::I2CMasterInit (void) noexcept {
+	//
+	// Initializes the GPIO.
+	//
+
+	// Makes PB6 (SCL), PB7 (SDA) Alternative Function
+	GPIOB->MODER &= ~(GPIO_MODER_MODER6 | GPIO_MODER_MODER7);
+	GPIOB->MODER |= ((0x2 << GPIO_MODER_MODER6_Pos)
+		| (0x2 << GPIO_MODER_MODER7_Pos));
+
+	// Selects AF4 for PB6 and PB7.
+	GPIOB->AFR[0] |= ((4 << GPIO_AFRL_AFRL6_Pos)
+		| (4 << GPIO_AFRL_AFRL7_Pos));
+
+	//
+	// Initializes the peripheral
+	//
+
+	// Initializes the I2C peripheral.
+	m_I2C.Init ();
+}
+
 /// Enables the used peripheral clocks.
 void Main::SetupRCC (void) noexcept {
 	// Enables GPIOA, DMA1
 	RCC->AHB1ENR |= (RCC_AHB1ENR_GPIOAEN
+		| RCC_AHB1ENR_GPIOBEN
 		| RCC_AHB1ENR_DMA1EN);
 
 	// Enables TIM8 (Delay)
@@ -127,8 +153,10 @@ void Main::Setup (void) noexcept {
 	USART::STDUsartInit ();
 	Main::SPISlaveInit ();
 	Main::GPSInit ();
+	Main::I2CMasterInit ();
 
 	m_Buzzer.Init ();
+	m_IMU.Init ();
 
 	// Performs the startup beep, and prints that we're ready
 	//  to the serial terminal.

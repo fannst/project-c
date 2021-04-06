@@ -6,6 +6,11 @@
 
 #pragma once
 
+typedef enum {
+	I2C_OPMODE_READ = 0,
+	I2C_OPMODE_WRITE = 1
+} I2C_Operation_Mode_t;
+
 class I2C {
 public:
 
@@ -28,6 +33,9 @@ public:
 
 	/// Reads one byte from the I2C bus.
 	uint8_t Read (void) noexcept;
+
+	/// Sets the I2C Mode.
+	void SetMode (I2C_Operation_Mode_t mode) noexcept;
 private:
 	I2C_TypeDef *m_I2C;
 };

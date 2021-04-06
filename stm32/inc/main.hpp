@@ -11,6 +11,7 @@
 #include "hardware/wwdg.hpp"
 #include "hardware/SPI.hpp"
 #include "hardware/usart.hpp"
+#include "drivers/BNO055.hpp"
 
 #include "drivers/GY-GPS6MV2.hpp"
 #include "drivers/Servo.hpp"
@@ -31,6 +32,9 @@ public:
 	/// Initializes the SPI slave peripheral.
 	void SPISlaveInit (void) noexcept;
 
+	/// Initializes the I2C Master Peripheral
+	void I2CMasterInit (void) noexcept;
+
 	/// Enables the used peripheral clocks.
 	void SetupRCC (void) noexcept;
 
@@ -48,6 +52,8 @@ public:
 private:
 	static Main INSTANCE;
 
+	I2C m_I2C;
+	BNO055 m_IMU;
 	GY_GPS6MV2 m_GPS;		// The GPS module
 	Buzzer m_Buzzer;		// The Status Buzzer
 };

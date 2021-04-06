@@ -23,3 +23,7 @@ MOSI: PA7
 
 ### Buzzer
 SIG: A1
+
+### I2C (Master Device, for IMU)
+SCL: PB6
+SDA: PB7
