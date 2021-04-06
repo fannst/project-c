@@ -21,10 +21,6 @@ extern "C" void USART2_IRQHandler (void) noexcept {
 	}
 }
 
-/// Handles the SPI1 Interrupt.
-extern "C" void SPI1_IRQHandler (void) noexcept {
-}
-
 /**************************************************
  * Classes
  **************************************************/
@@ -41,8 +37,7 @@ GY_GPS6MV2 &Main::getGPS() noexcept {
 
 Main::Main (void) noexcept:
 	m_GPS (USART2),
-	m_Buzzer (GPIOA, 1),
-	m_SPISlave (SPI1)
+	m_Buzzer (GPIOA, 1)
 {}
 
 /// Initializes the GPS hardware.
@@ -104,7 +99,6 @@ void Main::SPISlaveInit (void) noexcept {
 	NVIC_EnableIRQ (SPI1_IRQn);
 
 	// Initializes the SPI slave.
-	m_SPISlave.Init ();
 }
 
 /// Enables the used peripheral clocks.
@@ -157,15 +151,23 @@ void Main::Loop (void) noexcept {
  **************************************************/
 
 /// Gets called after the startup code is finished.
-extern "C" __attribute__ (( noreturn )) int main (void) noexcept {
+extern "C" int main (void) noexcept {
+	// Initializes the system clock to 216Mhz using the PLL.
 	SysClk::Init ();
 
+	// Gets the singleton instance from main.
 	Main &main = Main::GetInstance ();
 
+	// Initializes the RCC (Peripheral Clock Supplies) and
+	//  calls the initial setup method.
 	main.SetupRCC ();
 	main.Setup ();
 
+	// Stays in loop forever, and calls the loop of main.
 	while (true) {
 		main.Loop ();
 	}
+
+	// Should never be reached LOL.
+	return 0;
 }

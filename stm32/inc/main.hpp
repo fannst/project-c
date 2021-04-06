@@ -50,7 +50,6 @@ private:
 
 	GY_GPS6MV2 m_GPS;		// The GPS module
 	Buzzer m_Buzzer;		// The Status Buzzer
-	SPI m_SPISlave;			// The SPI Slave (Communication with PI)
 };
 
 /**************************************************
@@ -58,4 +57,4 @@ private:
  **************************************************/
 
 /// Gets called after the startup code is finished.
-extern "C" __attribute__ (( noreturn )) int main (void) noexcept;
+extern "C" int main (void) noexcept;

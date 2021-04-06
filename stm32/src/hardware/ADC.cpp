@@ -7,7 +7,7 @@ ADCn::ADCn (ADC_TypeDef *adc) noexcept:
 
 /// Initializes the ADC peripheral.
 void ADCn::Init (void) noexcept {
-	m_ADC->CR1 = ();
+	// m_ADC->CR1 = ();
 }
 
 /// Enables the ADC.

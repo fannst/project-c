@@ -57,18 +57,37 @@ typedef struct __attribute__ (( packed )) {
 } SPI_Slave_Management_Payload_t;
 
 #define SPI_SLAVE_FIFO_BUFFER_SIZE				(1024)
+#define SPI_SLAVE_PACKET_BUFFER_SIZE			(98)
 
 class SPI_Slave : public SPI {
 public:
-	/// Creates a new SPI slave instance.
-	SPI_Slave (SPI_TypeDef *spi) noexcept;
+	inline static SPI_Slave &GetInstance (void) noexcept {
+		return INSTANCE;
+	}
 
 	/// Checks if there is a packet available in the FIFO.
 	bool PacketAvailable (void) const noexcept;
 
 	/// Reads a packet from the FIFO.
 	void ReadPacket (SPI_Slave_Packet_t *output) noexcept;
+
+	/// Initializes the SPI slave.
+	virtual void Init (void) noexcept;
+
+	/// Gets called on a RXNE interrupt.
+	void HandleIRQ (uint8_t byte) noexcept;
+
+	/// Gets called on a DMA interrupt.
+	void HandleDMAIRQ (void) noexcept;
 protected:
+	/// Creates a new SPI slave instance.
+	SPI_Slave (SPI_TypeDef *spi) noexcept;
+
+	static SPI_Slave INSTANCE;
+
+	uint8_t m_PacketBuffer[SPI_SLAVE_PACKET_BUFFER_SIZE];
 	uint8_t m_FIFOBuffer[SPI_SLAVE_FIFO_BUFFER_SIZE];
+	uint32_t m_PacketBufferLevel;
+	uint16_t m_PacketLength;
 	FIFO m_FIFO;
 };
