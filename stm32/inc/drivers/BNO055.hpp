@@ -252,6 +252,9 @@ public:
 	/// Reads a byte from a BNO055 Register.
 	uint8_t ReadRegByte (uint8_t reg) const noexcept;
 
+	/// Reads two bytes from a BNO055 register sequence.
+	uint16_t ReadRegByte16 (uint8_t reg) const noexcept;
+
 	/// Gyroscope Data Methods.
 	uint16_t ReadGyroX (void) const noexcept;
 	uint16_t ReadGyroY (void) const noexcept;

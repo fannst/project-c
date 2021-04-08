@@ -17,6 +17,7 @@ TOF10120_Distance_Sending_Mode_t TOF10120::ReadDistanceSendingMode (void) noexce
 /// Writes a byte to the specified register.
 void TOF10120::Write (uint8_t reg, uint8_t byte) noexcept {
 	// Sets the slave address.
+	m_I2CPeripheral.SetMode (I2C_OPMODE_WRITE);
 	m_I2CPeripheral.SetSlaveAddress (m_SlaveAddress);
 
 	// Writes the slave-address and the register to write to.
@@ -36,6 +37,7 @@ uint8_t TOF10120::Read (uint8_t reg) noexcept {
 	uint8_t value;
 
 	// Sets the slave address.
+	m_I2CPeripheral.SetMode (I2C_OPMODE_READ);
 	m_I2CPeripheral.SetSlaveAddress (m_SlaveAddress);
 
 	// Writes the slave-address and the register to write to.

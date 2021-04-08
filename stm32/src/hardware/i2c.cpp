@@ -24,13 +24,13 @@ void I2C::SetSlaveAddress (uint8_t sAddr) noexcept {
 /// Generates an start condition.
 void I2C::Start (void) noexcept {
 	m_I2C->CR2 |= I2C_CR2_START;			// Triggers START send.
-	while (m_I2C->CR2 & I2C_CR2_START);		// Waits for START send to finish.
+	while (m_I2C->ISR & I2C_ISR_BUSY);		// Waits for START send to finish.
 }
 
 /// Generates an stop condition.
 void I2C::Stop (void) noexcept {
 	m_I2C->CR2 |= I2C_CR2_STOP;				// Triggers STOP send.
-	while (m_I2C->CR2 & I2C_CR2_STOP);		// Waits for STOP to finish.
+	while (m_I2C->ISR & I2C_ISR_BUSY);		// Waits for STOP to finish.
 }
 
 /// Writes the specified byte to the I2C bus.

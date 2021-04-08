@@ -52,7 +52,7 @@ public:
 private:
 	static Main INSTANCE;
 
-	I2C m_I2C;
+	I2C m_I2C_400Khz;
 	BNO055 m_IMU;
 	GY_GPS6MV2 m_GPS;		// The GPS module
 	Buzzer m_Buzzer;		// The Status Buzzer

@@ -36,8 +36,8 @@ GY_GPS6MV2 &Main::getGPS() noexcept {
 }
 
 Main::Main (void) noexcept:
-	m_I2C (I2C1),
-	m_IMU (m_I2C, BNO055_DEFAULT_I2C_ID),
+	m_I2C_400Khz (I2C1),
+	m_IMU (m_I2C_400Khz, BNO055_DEFAULT_I2C_ID),
 	m_GPS (USART2),
 	m_Buzzer (GPIOA, 1)
 {}
@@ -123,7 +123,7 @@ void Main::I2CMasterInit (void) noexcept {
 	//
 
 	// Initializes the I2C peripheral.
-	m_I2C.Init ();
+	m_I2C_400Khz.Init ();
 }
 
 /// Enables the used peripheral clocks.
